@@ -268,3 +268,4 @@ Zero shot video segmentation on [DAVIS](https://davischallenge.org/) video datas
 
 The Vision Transformer code is based on [timm](https://github.com/rwightman/pytorch-image-models) library and the semantic segmentation training and evaluation pipeline 
 is using [mmsegmentation](https://github.com/open-mmlab/mmsegmentation).
+# segmenter
