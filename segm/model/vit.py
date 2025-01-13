@@ -67,6 +67,7 @@ class VisionTransformer(nn.Module):
 
         # cls and pos tokens
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
+        self.multi_cls_token = nn.Parameter(torch.zeros(1, n_cls, d_model))
         self.distilled = distilled
         if self.distilled:
             self.dist_token = nn.Parameter(torch.zeros(1, 1, d_model))
@@ -91,11 +92,21 @@ class VisionTransformer(nn.Module):
 
         trunc_normal_(self.pos_embed, std=0.02)
         trunc_normal_(self.cls_token, std=0.02)
+        trunc_normal_(self.multi_cls_token, std=0.02)
         if self.distilled:
             trunc_normal_(self.dist_token, std=0.02)
         self.pre_logits = nn.Identity()
 
         self.apply(init_weights)
+
+        self.pos_embed_cls = nn.Parameter(torch.zeros(1, n_cls, d_model))
+        self.pos_embed_pat = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches, d_model))
+
+        trunc_normal_(self.pos_embed_cls, std=.02)
+        trunc_normal_(self.pos_embed_pat, std=.02)
+
+
+
 
     @torch.jit.ignore
     def no_weight_decay(self):
@@ -111,22 +122,28 @@ class VisionTransformer(nn.Module):
 
         x = self.patch_embed(im)
         cls_tokens = self.cls_token.expand(B, -1, -1)
+        multi_cls_tokens = self.multi_cls_token.expand(B, -1, -1)
+
+        multi_cls_tokens = multi_cls_tokens + self.pos_embed_cls
+        x = x + self.pos_embed_pat
+
         if self.distilled:
             dist_tokens = self.dist_token.expand(B, -1, -1)
             x = torch.cat((cls_tokens, dist_tokens, x), dim=1)
         else:
-            x = torch.cat((cls_tokens, x), dim=1)
+            x = torch.cat((multi_cls_tokens, x), dim=1)
 
-        pos_embed = self.pos_embed
+        # pos_embed = self.pos_embed
+
         num_extra_tokens = 1 + self.distilled
-        if x.shape[1] != pos_embed.shape[1]:
-            pos_embed = resize_pos_embed(
-                pos_embed,
-                self.patch_embed.grid_size,
-                (H // PS, W // PS),
-                num_extra_tokens,
-            )
-        x = x + pos_embed
+        # if x.shape[1] != pos_embed.shape[1]:
+        #     pos_embed = resize_pos_embed(
+        #         pos_embed,
+        #         self.patch_embed.grid_size,
+        #         (H // PS, W // PS),
+        #         num_extra_tokens,
+        #     )
+        # x = x + pos_embed
         x = self.dropout(x)
 
         for blk in self.blocks:

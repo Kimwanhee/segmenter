@@ -23,6 +23,9 @@ from contextlib import suppress
 from segm.utils.distributed import sync_model
 from segm.engine import train_one_epoch, evaluate
 
+import os
+os.environ['DATASET'] = '/ws/data'
+
 
 @click.command(help="")
 @click.option("--log-dir", type=str, help="logging directory")

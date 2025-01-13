@@ -18,6 +18,7 @@ class Segmenter(nn.Module):
         self.patch_size = encoder.patch_size
         self.encoder = encoder
         self.decoder = decoder
+        self.multi_token_mlp = nn.Linear(encoder.d_model, encoder.d_model)
 
     @torch.jit.ignore
     def no_weight_decay(self):
@@ -37,10 +38,14 @@ class Segmenter(nn.Module):
         x = self.encoder(im, return_features=True)
 
         # remove CLS/DIST tokens for decoding
-        num_extra_tokens = 1 + self.encoder.distilled
-        x = x[:, num_extra_tokens:]
+        # num_extra_tokens = 1 + self.encoder.distilled
+        # x = x[:, num_extra_tokens:]
 
-        masks = self.decoder(x, (H, W))
+        multi_cls, x = x[:, :self.n_cls, :], x[:, self.n_cls:, :]
+
+        multi_cls = self.multi_token_mlp(multi_cls)
+
+        masks = self.decoder(x, multi_cls, (H, W))
 
         masks = F.interpolate(masks, size=(H, W), mode="bilinear")
         masks = unpadding(masks, (H_ori, W_ori))

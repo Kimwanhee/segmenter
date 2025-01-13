@@ -77,13 +77,16 @@ class MaskTransformer(nn.Module):
     def no_weight_decay(self):
         return {"cls_emb"}
 
-    def forward(self, x, im_size):
+    def forward(self, x, multi_cls, im_size):
         H, W = im_size
         GS = H // self.patch_size
 
         x = self.proj_dec(x)
-        cls_emb = self.cls_emb.expand(x.size(0), -1, -1)
-        x = torch.cat((x, cls_emb), 1)
+
+        # multi_cls = multi_cls.mean(dim=0, keepdim=True)
+        # multi_cls = multi_cls.expand(x.size(0), -1, -1)
+
+        x = torch.cat((x, multi_cls), 1)
         for blk in self.blocks:
             x = blk(x)
         x = self.decoder_norm(x)

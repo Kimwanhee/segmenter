@@ -44,7 +44,7 @@ def create_vit(model_cfg):
     backbone = model_cfg.pop("backbone")
 
     normalization = model_cfg.pop("normalization")
-    model_cfg["n_cls"] = 1000
+    # model_cfg["n_cls"] = 1000
     mlp_expansion_ratio = 4
     model_cfg["d_ff"] = mlp_expansion_ratio * model_cfg["d_model"]
 
