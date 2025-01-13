@@ -86,6 +86,8 @@ class MaskTransformer(nn.Module):
         # multi_cls = multi_cls.mean(dim=0, keepdim=True)
         # multi_cls = multi_cls.expand(x.size(0), -1, -1)
 
+        multi_cls = multi_cls.expand(x.size(0), -1, -1)
+
         x = torch.cat((x, multi_cls), 1)
         for blk in self.blocks:
             x = blk(x)

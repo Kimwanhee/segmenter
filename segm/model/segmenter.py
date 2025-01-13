@@ -43,6 +43,8 @@ class Segmenter(nn.Module):
 
         multi_cls, x = x[:, :self.n_cls, :], x[:, self.n_cls:, :]
 
+        multi_cls = multi_cls.mean(dim=0, keepdim=True)
+
         multi_cls = self.multi_token_mlp(multi_cls)
 
         masks = self.decoder(x, multi_cls, (H, W))
