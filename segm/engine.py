@@ -30,8 +30,9 @@ def train_one_epoch(
         seg_gt = batch["segmentation"].long().to(ptu.device)
 
         with amp_autocast():
-            seg_pred = model.forward(im)
+            seg_pred, global_loss = model.forward(im, seg_gt)
             loss = criterion(seg_pred, seg_gt)
+            loss = loss + global_loss
 
         loss_value = loss.item()
         if not math.isfinite(loss_value):
