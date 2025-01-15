@@ -32,7 +32,7 @@ def train_one_epoch(
         with amp_autocast():
             seg_pred, global_loss = model.forward(im, seg_gt, True)
             loss = criterion(seg_pred, seg_gt)
-            loss = loss + global_loss
+            loss = loss + (0.1 * global_loss)
 
         loss_value = loss.item()
         if not math.isfinite(loss_value):
