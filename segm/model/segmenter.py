@@ -94,7 +94,7 @@ class Segmenter(nn.Module):
         compare = patch_gt_flat.unsqueeze(-1) == classes_ids.unsqueeze(0).unsqueeze(0)  # n, hw, 1 == 1, 1, n_c => n,hw,n_c
         cls_counts = compare.sum(1)
 
-        present_inds = torch.where(cls_counts[:, :-1] >= 10)  # ([0,...,n-1], [prese   nt class ids])
+        present_inds = torch.where(cls_counts >= 10)  # ([0,...,n-1], [prese   nt class ids])
         batch_inds, cls_in_batch = present_inds
 
         min_views = torch.min(cls_counts[present_inds])
@@ -118,7 +118,7 @@ class Segmenter(nn.Module):
 
         return global_loss
 
-    def forward(self, im, seg_gt):
+    def forward(self, im, seg_gt, is_train):
         H_ori, W_ori = im.size(2), im.size(3)
         im = padding(im, self.patch_size)
         H, W = im.size(2), im.size(3)
@@ -133,7 +133,9 @@ class Segmenter(nn.Module):
 
         multi_cls = multi_cls.mean(dim=0, keepdim=True)
 
-        global_loss = self.global_loss(seg_gt, x, multi_cls)
+        global_loss = 0
+        if is_train:
+            global_loss = self.global_loss(seg_gt, x, multi_cls)
 
         multi_cls = self.multi_token_mlp(multi_cls)
 
