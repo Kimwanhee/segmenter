@@ -81,7 +81,8 @@ def create_vit(model_cfg):
     )
 
     model.pos_embed_cls = torch.nn.Parameter(
-        model.pos_embed[:, :1, :].expand(-1, model.pos_embed_cls.shape[1], -1).detach().clone()
+        model.pos_embed[:, :1, :].expand(-1, model.pos_embed_cls.shape[1], -1).detach().clone() +
+        torch.randn_like(model.cls_token.expand(-1, model.pos_embed_cls.shape[1], -1)) * 0.02
     )
 
     model.pos_embed_pat = torch.nn.Parameter(
