@@ -76,7 +76,8 @@ def create_vit(model_cfg):
         load_custom_pretrained(model, default_cfg)
 
     model.multi_cls_token = torch.nn.Parameter(
-        model.cls_token.expand(-1, model.multi_cls_token.shape[1], -1).detach().clone()
+        model.cls_token.expand(-1, model.multi_cls_token.shape[1], -1).detach().clone() +
+        torch.randn_like(model.cls_token.expand(-1, model.multi_cls_token.shape[1], -1)) * 0.02
     )
 
     model.pos_embed_cls = torch.nn.Parameter(
